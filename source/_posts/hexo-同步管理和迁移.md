@@ -111,7 +111,7 @@ public/
 
 github提供了两种`git clone`的方式：https和ssh。由于https速度慢，且每次都要输入口令，所以我们一般选择使用ssh方式，这就需要我们添加ssh key。
 
-![img](https:////upload-images.jianshu.io/upload_images/4906139-9a38d6a83f87e33a.png?imageMogr2/auto-orient/strip|imageView2/2/w/399/format/webp)
+![](https://cdn.jsdelivr.net/gh/LVicBlack/IMG/root/20210903095740.png)
 
 
 
