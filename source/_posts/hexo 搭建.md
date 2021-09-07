@@ -1,7 +1,10 @@
 ---
 title: hexo 搭建
 date: 2021-08-31 23:31:21
+categories: 
+- hexo
 tags:
+- hexo
 ---
 
 
@@ -84,18 +87,18 @@ hexo clean && hexo g && hexo d
 
 虽然在Internet上可以访问我们的网站，但是网址是GitHub提供的:http://xxxx.github.io (知乎排版可能会出现"http://"字样) 而我们想使用我们自己的个性化域名，这就需要绑定我们自己的域名。这里演示的是在阿里云万网的域名绑定，在国内主流的域名代理厂商也就阿里云和腾讯云。登录到阿里云，进入管理控制台的域名列表，找到你的个性化域名，进入解析
 
-![image-20210831235715373](C:\Users\raytine\AppData\Roaming\Typora\typora-user-images\image-20210831235715373.png)
+![](https://cdn.jsdelivr.net/gh/LVicBlack/IMG/root/image-20210831235715373.png)
 
 
 然后添加解析
 
-![image-20210831235749184](C:\Users\raytine\AppData\Roaming\Typora\typora-user-images\image-20210831235749184.png)
+![](https://cdn.jsdelivr.net/gh/LVicBlack/IMG/root/image-20210831235749184.png)
 
 
 
 包括添加三条解析记录，192.30.252.153是GitHub的地址，你也可以ping你的 http://xxxx.github.io 的ip地址，填入进去。第三个记录类型是CNAME，CNAME的记录值是：你的用户名.http://github.io 这里千万别弄错了。第二步，登录GitHub，进入之前创建的仓库，点击settings，设置Custom domain，输入你的域名
 
-![image-20210901000235693](C:\Users\raytine\AppData\Roaming\Typora\typora-user-images\image-20210901000235693.png)
+![](https://cdn.jsdelivr.net/gh/LVicBlack/IMG/root/image-20210901000235693.png)
 
 
 点击save保存。第三步，进入本地博客文件夹 ，进入blog/source目录下，创建一个记事本文件，输入你的域名，对，只要写进你自己的域名即可。如果带有www，那么以后访问的时候必须带有www完整的域名才可以访问，但如果不带有www，以后访问的时候带不带www都可以访问。所以建议，不要带有www。这里我还是写了www(不建议带有www):

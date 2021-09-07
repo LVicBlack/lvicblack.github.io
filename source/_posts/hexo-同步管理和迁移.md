@@ -1,7 +1,10 @@
 ---
 title: hexo 同步管理和迁移
 date: 2021-09-03 09:49:30
+categories: 
+- hexo
 tags:
+- hexo
 ---
 
 # 从分析目录结构开始
