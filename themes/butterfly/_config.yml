@@ -45,7 +45,7 @@ code_word_wrap: false
 copy:
   enable: true
   copyright:
-    enable: false
+    enable: true
     limit_count: 50
 
 # social settings (社交圖標設置)
@@ -92,7 +92,7 @@ katex:
 # Favicon（網站圖標）
 favicon: /img/favicon.png
 
-# Avatar (頭像)
+# Avatar (頭像) todo
 avatar:
   img: https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png
   effect: false
@@ -101,13 +101,13 @@ avatar:
 disable_top_img: false
 
 # The banner image of home page
-index_img:
+index_img:  'linear-gradient(20deg, #0062be, #925696, #cc426e, #fb0347)'
 
 # If the banner of page not setting, it will show the top_img
 default_top_img:
 
-# The banner image of archive page
-archive_img:
+# The banner image of archive page todo e.g. rgb(255,228,181)
+archive_img: 
 
 # If the banner of tag page not setting, it will show the top_img
 # note: tag page, not tags page (子標籤頁面的 top_img)
@@ -129,14 +129,15 @@ category_per_img:
 
 cover:
   # display the cover or not (是否顯示文章封面)
-  index_enable: true
+  index_enable: false
   aside_enable: true
-  archives_enable: true
+  archives_enable: false
   # the position of cover in home page (封面顯示的位置)
   # left/right/both
   position: both
   # When cover is not set, the default cover is displayed (當沒有設置cover時，默認的封面顯示)
   default_cover:
+    - https://cdn.jsdelivr.net/gh/jerryc127/CDN@latest/cover/default_bg.png
     # - https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg
 
 # Replace Broken Images (替換無法顯示的圖片)
@@ -191,7 +192,7 @@ toc:
 
 post_copyright:
   enable: true
-  decode: false
+  decode: true
   license: CC BY-NC-SA 4.0
   license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/
 
@@ -217,10 +218,10 @@ post_edit:
 # Related Articles
 related_post:
   enable: true
-  limit: 6 # Number of posts displayed
-  date_type: created # or created or updated 文章日期顯示創建日或者更新日
+  limit: 3 # Number of posts displayed
+  date_type: updated # or created or updated 文章日期顯示創建日或者更新日
 
-# figcaption (圖片描述文字)
+# figcaption (圖片描述文字) todo
 photofigcaption: false
 
 # post_pagination (分頁)
@@ -228,11 +229,11 @@ photofigcaption: false
 # 1: The 'next post' will link to old post
 # 2: The 'next post' will link to new post
 # false: disable pagination
-post_pagination: 1
+post_pagination: 2
 
 # anchor
 # when you scroll in post, the URL will update according to header id.
-anchor: false
+anchor: true
 
 # Displays outdated notice for a post (文章過期提醒)
 noticeOutdate:
@@ -253,7 +254,7 @@ addThis:
   pubid:
 
 # Share.js
-# https://github.com/overtrue/share.js
+# https://github.com/overtrue/share.js todo
 sharejs:
   enable: true
   sites: facebook,twitter,wechat,weibo,qq
@@ -645,7 +646,7 @@ aside:
   hide: false
   button: true
   mobile: true # display on mobile
-  position: right # left or right
+  position: left # left or right
   card_author:
     enable: true
     description:
@@ -656,7 +657,7 @@ aside:
       link: https://github.com/xxxxxx
   card_announcement:
     enable: true
-    content: This is my Blog
+    content: 印象笔记搬运中。。。
   card_recent_post:
     enable: true
     limit: 5 # if set 0 will show all
@@ -695,12 +696,12 @@ busuanzi:
 # Time difference between publish date and now (網頁運行時間)
 # Formal: Month/Day/Year Time or Year/Month/Day Time
 runtimeshow:
-  enable: false
-  publish_date:
+  enable: true
+  publish_date: 2021/8/27 00:00:00  
 
 # Aside widget - Newest Comments
 newest_comments:
-  enable: false
+  enable: true
   sort_order: # Don't modify the setting unless you know how it works
   limit: 6
   storage: 10 # unit: mins, save data to localStorage
@@ -710,15 +711,15 @@ newest_comments:
 # --------------------------------------
 
 # Change font size
-change_font_size: false
+change_font_size: true
 
 # Conversion between Traditional and Simplified Chinese (簡繁轉換)
 translate:
-  enable: false
+  enable: true
   # The text of a button
   default: 繁
   # the language of website (1 - Traditional Chinese/ 2 - Simplified Chinese）
-  defaultEncoding: 2
+  defaultEncoding: 1
   # Time delay
   translateDelay: 0
   # The text of the button when the language is Simplified Chinese
@@ -738,7 +739,7 @@ darkmode:
   # autoChangeMode: 1  Following System Settings, if the system doesn't support dark mode, it will switch dark mode between 6 pm to 6 am
   # autoChangeMode: 2  Switch dark mode between 6 pm to 6 am
   # autoChangeMode: false
-  autoChangeMode: false
+  autoChangeMode: 1
 
 # Lightbox (圖片大圖查看模式)
 # --------------------------------------
