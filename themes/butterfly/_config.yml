@@ -589,7 +589,7 @@ display_mode: light
 
 # Beautify (美化頁面顯示)
 beautify:
-  enable: false
+  enable: true
   field: post # site/post
   title-prefix-icon: '\f0c1'
   title-prefix-icon-color: '#F47466'
@@ -618,9 +618,9 @@ hr_icon:
 subtitle:
   enable: false
   # Typewriter Effect (打字效果)
-  effect: true
+  effect: false
   # loop (循環打字)
-  loop: true
+  loop: false
   # source調用第三方服務
   # source: false 關閉調用
   # source: 1  調用搏天api的隨機語錄（簡體）
@@ -633,7 +633,9 @@ subtitle:
   # 如果有英文雙引號' " ',請使用轉義字元 &quot;
   # 開頭不允許轉義字元，如需要，請把整個句子用雙引號包住
   # 如果關閉打字效果，subtitle只會顯示sub的第一行文字
-  sub:
+  sub: 
+    # - 天行健 君子以自强不息 | 地势乾 君子以厚德载物
+    - 一个人的命运啊&#44; 当然要靠自我奋斗&#44; 但是也要考虑到历史的行程。
 
 # Loading Animation (加載動畫)
 preloader: false

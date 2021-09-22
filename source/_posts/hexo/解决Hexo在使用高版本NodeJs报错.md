@@ -20,7 +20,6 @@ $ hexo -s
 (node:87224) Warning: Accessing non-existent property 'lineno' of module exports inside circular dependency
 (node:87224) Warning: Accessing non-existent property 'column' of module exports inside circular dependency
 (node:87224) Warning: Accessing non-existent property 'filename' of module exports inside circular dependency
-Copy
 ```
 
 说实话我对 node.js 没啥了解，但是单词还是认识几个，看起来像是循环依赖的问题。（习惯性想起了一道面试题：Spring 是如何解决循环依赖的？）
@@ -39,7 +38,6 @@ Copy
 brew uninstall node
 brew install node@12
 brew link --overwrite --force node@12
-Copy
 ```
 
 但这样解决问题显然不是我的风格，继续翻 Github 上的 issues，发现**具体到 Hexo 这里的 warning**是由于 [stylus](https://github.com/stylus/stylus) 导致的，幸运的是 3 天前 stylus 在 0.54.8 版本修复了这个问题（见 pr [#2538](https://github.com/stylus/stylus/pull/2538) ）。
@@ -49,14 +47,12 @@ Copy
 ```
 yarn remove hexo-renderer-stylus
 yarn add hexo-renderer-stylus
-Copy
 ```
 
 至于其他的 package 导致的 warnings，可以使用如下方式来看看具体是哪个 package 导致的
 
 ```
 npx cross-env NODE_OPTIONS="--trace-warnings" hexo s
-Copy
 ```
 
 UPDATE，接昨天说的：
@@ -69,7 +65,6 @@ UPDATE，接昨天说的：
 {
   "stylus": "0.54.5"
 }
-Copy
 ```
 
 已经有人给 nib 提 issue 了，但看它最后一次更新已经是 4 years ago 了，估计是指望不上它更新了，那我们自己来解决吧！
@@ -80,7 +75,6 @@ Copy
 "resolutions": {
   "stylus": "^0.54.8"
 }
-Copy
 ```
 
 然后重新 `yarn install` 一下就好了。
