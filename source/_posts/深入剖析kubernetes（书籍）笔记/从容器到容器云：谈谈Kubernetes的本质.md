@@ -96,40 +96,113 @@ Kubernetes 项目并不关心你部署的是什么容器运行时、使用的什
 
 也就是说，只要你愿意，那些原先拥挤在同一个虚拟机里的各个应用、组件、守护进程，都可以被分别做成镜像，然后运行在一个个专属的容器中。它们之间互不干涉，拥有各自的资源配额，可以被调度在整个集群里的任何一台机器上。而这，正是一个 PaaS 系统最理想的工作状态，也是所谓“微服务”思想得以落地的先决条件。
 
+### Kubernetes设计思想
 >**Kubernetes 项目最主要的设计思想是，从更宏观的角度，以统一的方式来定义任务之间的各种关系，并且为将来支持更多种类的关系留有余地。**
 
+#### 应用之间的关系
+比如，Kubernetes 项目对容器间的“访问”进行了分类
 
+- “紧密交互”的关系，即：这些应用之间需要非常频繁的交互和访问；又或者，它们会直接通过本地文件进行信息交换。
+	- 在常规环境下，这些应用往往会被直接部署在同一台机器上，通过 Localhost 通信，通过本地磁盘目录交换文件。
+	- 而在 Kubernetes 项目中，这些容器则会被划分为一个“Pod”，Pod 里的容器共享同一个 Network Namespace、同一组数据卷，从而达到高效率交换信息的目的。
+		Pod 是 Kubernetes 项目中最基础的一个对象，源自于 Google Borg 论文中一个名叫 Alloc 的设计。
+- Web 应用与数据库之间的访问关系
+	Kubernetes 项目则提供了一种叫作“Service”的服务。
+	像这样的两个应用，往往故意不部署在同一台机器上，这样即使 Web 应用所在的机器宕机了，数据库也完全不受影响。
 
+- 那么 Web 应用又怎么找到数据库容器的 Pod 呢？
+	Kubernetes 项目的做法是给 Pod 绑定一个 Service 服务，而 Service 服务声明的 IP 地址等信息是“终生不变”的。这个 Service 服务的主要作用，就是作为 Pod 的代理入口（Portal），从而代替 Pod 对外暴露一个固定的网络地址。
+	这样，对于 Web 应用的 Pod 来说，它需要关心的就是数据库 Pod 的 Service 信息。不难想象，Service 后端真正代理的 Pod 的 IP 地址、端口等信息的自动更新、维护，则是 Kubernetes 项目的职责。
 
+像这样，围绕着容器和 Pod 不断向真实的技术场景扩展，我们就能够摸索出一幅如下所示的 Kubernetes 项目核心功能的“全景图”。
 
+![](https://cdn.jsdelivr.net/gh/LVicBlack/IMG/root/Kubernetes-core-function.png)
 
+1. ingress-->service-->Deployment(可以实现启动多个pods)-->pod(IP,port动态变动) 
+	我们从容器这个最基础的概念出发，首先遇到了容器间“紧密协作”关系的难题，于是就扩展到了 Pod；有了 Pod 之后，我们希望能一次启动多个应用的实例，这样就需要 Deployment 这个 Pod 的多实例管理器；而有了这样一组相同的 Pod 后，我们又需要通过一个固定的 IP 地址和端口以负载均衡的方式访问它，于是就有了 Service。
+2. secret: 实现访问加密
+	Kubernetes 项目提供了一种叫作 Secret 的对象，它其实是一个保存在 Etcd 里的键值对数据。这样，你把 Credential 信息以 Secret 的方式存在 Etcd 里，Kubernetes 就会在你指定的 Pod（比如，Web 应用的 Pod）启动时，自动把 Secret 里的数据以 Volume 的方式挂载到容器里。这样，这个 Web 应用就可以访问数据库了。
 
+#### 应用的运行形态
+>除了应用与应用之间的关系外，应用运行的形态是影响“如何容器化这个应用”的第二个重要因素。
 
+1. 无状态模式 - Deployment，ReplicaSet，ReplicaController; 
+2. 有状态模式 - StatefulSet；
+3. 守护进程模式 - DaemonSet；
+4. 批处理模式 - Job, CronJob
 
+可以看到，Kubernetes 项目并没有像其他项目那样，为每一个管理功能创建一个指令，然后在项目中实现其中的逻辑。这种做法，的确可以解决当前的问题，但是在更多的问题来临之后，往往会力不从心。
 
+相比之下，在 Kubernetes 项目中，我们所推崇的使用方法是：
+- 首先，通过一个“编排对象”，比如 Pod、Job、CronJob 等，来描述你试图管理的应用；
+- 然后，再为它定义一些“服务对象”，比如 Service、Secret、Horizontal Pod Autoscaler（自动水平扩展器）等。这些对象，会负责具体的平台级功能。
 
+**这种使用方法，就是所谓的“声明式 API”。这种 API 对应的“编排对象”和“服务对象”，都是 Kubernetes 项目中的 API 对象（API Object）。**
 
+### Kubernetes 项目如何启动一个容器化任务
 
+比如，我现在已经制作好了一个 Nginx 容器镜像，希望让平台帮我启动这个镜像。并且，我要求平台帮我运行两个完全相同的 Nginx 副本，以负载均衡的方式共同对外提供服务。
 
+- 如果是自己 DIY 的话，可能需要启动两台虚拟机，分别安装两个 Nginx，然后使用 keepalived 为这两个虚拟机做一个虚拟 IP。
+- 而如果使用 Kubernetes 项目呢？你需要做的则是编写如下这样一个 YAML 文件（比如名叫 nginx-deployment.yaml）：
 
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.7.9
+        ports:
+        - containerPort: 80
+```
+在上面这个 YAML 文件中，我们定义了一个 Deployment 对象，它的主体部分（spec.template 部分）是一个使用 Nginx 镜像的 Pod，而这个 Pod 的副本数是 2（replicas=2）。
 
+然后执行：
+```
+$ kubectl create -f nginx-deployment.yaml
+```
+这样，两个完全相同的 Nginx 容器副本就被启动了。
 
+### 总结
 
+#### 容器可以分为两个部分：
+- 容器运行时
+- 容器镜像。
 
+#### 调度
+过去很多的集群管理项目（比如 Yarn、Mesos，以及 Swarm）所擅长的，都是**把一个容器，按照某种规则，放置在某个最佳节点上运行起来。**
 
+#### 编排
+而 Kubernetes 项目所擅长的，是**按照用户的意愿和整个系统的规则，完全自动化地处理好容器之间的各种关系。**
 
+所以说，Kubernetes 项目的本质，是为用户提供一个具有普遍意义的容器编排工具。
 
+不过，更重要的是，Kubernetes 项目为用户提供的不仅限于一个工具。它真正的价值，乃在于提供了一套基于容器构建分布式系统的基础依赖。
 
+### 思考题
+1. 这今天的分享中，我介绍了 Kubernetes 项目的架构。你是否了解了 Docker Swarm（SwarmKit 项目）和 Kubernetes 在架构上和使用方法上的异同呢？
+	c
+	
+2. 在 Kubernetes 之前，很多项目都没办法管理“有状态”的容器，即，不能从一台宿主机“迁移”到另一台宿主机上的容器。你是否能列举出，阻止这种“迁移”的原因都有哪些呢？
+	迁移的是容器的rootfs，但是一些动态视图是没有办法伴随迁移一同进行迁移的。
+	迁移可以简单分为两类：
+	- 磁盘数据文件不变，进程重启；
+	- 磁盘数据文件不变、内存数据也不变，相当于连带进程一起挪过去。
+	- 第一种类型有很简单的方法：挂载云盘，从空间上解耦。
+	- 第二种类型就复杂了，需要将内存数据一点点迁移过去，最后瞬间切换。IaaS很早就应用热迁移技术了。
 
-
-
-
-
-
-
-
-
-
-
-
-
+	Kubernetes则讨巧了，只着眼于应用，直接约定容器是可以随时被杀死的，热迁移就没有那么重要了。甚至连IP都隐藏了，又绕过了一个大难题～
