@@ -71,7 +71,7 @@ public static float circumference(float r){
 
 ### 3. 本地方法栈（Native Method Stacks）
 
-- 本地方法栈与Java虚拟机栈作用类似，唯一不同的就是本地方法栈执行的是Native方法，而虚拟机栈是为JVM执行Java方法服务的。
+- 本地方法栈与Java虚拟机栈作用类似，唯一不同的就是本地方法栈执行的是**Native方法**，而虚拟机栈是为JVM执行Java方法服务的。
 - 另外，与 Java 虚拟机栈一样，本地方法栈也会抛出 StackOverflowError 和 OutOfMemoryError 异常。
 - JDK1.8 HotSpot虚拟机直接就把本地方法栈和虚拟机栈合二为一。
 
@@ -123,11 +123,12 @@ Heap的组成：
 
 ### 5. 方法区(Method Area) / 非堆（Non-Heap）
 
+堆和元空间模型：
+![](https://cdn.jsdelivr.net/gh/LVicBlack/IMG/root/20211101231125.png)
+
 - 用于存储已被虚拟机加载的**类信息、常量、静态变量**、即时编译器**编译后的代码**等数据，即存放静态文件，如Java类、方法等。
 
-方法区在java8以前是放在JVM内存中的，由永久代（PermGen）实现，受JVM内存大小参数的限制，在java8中移除了永久代的内容，方法区由元空间(Meta Space)实现，并直接放到了本地内存中，不受JVM参数的限制（当然，如果物理内存被占满了，方法区也会报OOM），并且**将原来放在方法区的字符串常量池和静态变量都转移到了Java堆中。**
-
-jdk1.8以前版本的 class和JAR包数据存储在 PermGen下面 ，PermGen 大小是固定的，而且项目之间无法共用，公有的 class，所以比较容易出现OOM异常。
+>方法区在java8以前是放在JVM内存中的，由永久代（PermGen）实现，受JVM内存大小参数的限制，在java8中移除了永久代的内容，方法区由元空间(Meta Space)实现，并直接放到了本地内存中，不受JVM参数的限制（当然，如果物理内存被占满了，方法区也会报OOM），并且**将原来放在方法区的字符串常量池和静态变量都转移到了Java堆中。**
 
 方法区在编译期间和类加载完成后的内容有少许不同，不过总的来说分为这两部分：
 - 类常量池（Class Constant Pool）
@@ -137,60 +138,122 @@ jdk1.8以前版本的 class和JAR包数据存储在 PermGen下面 ，PermGen 大
 	- 运行时常量池主要存放在类加载后被解析的字面量与符号引用，但不止这些
 	- 运行时常量池具备动态性，可以添加数据，比较多的使用就是String类的intern()方法
 
-#### 元空间
+#### 永久代（PermGen）
+
+永久代是hotspot 的jdk1.8以前的实现，使用jdk1.7的老司机肯定以前经常遇到过“java.lang.OutOfMemoryError: PremGen space”异常。这里的“PermGen space”其实指的就是方法区。
+
+（**方法区和永久代的关系**）不过方法区和“PermGen space”又有着本质的区别。前者是JVM的规范，而后者则是JVM规范的一种实现，并且只有HotSpot才有“PermGen space”。
+
+jdk1.8以前版本的 class和JAR包数据存储在 PermGen下面 ，PermGen 大小是固定的，而且项目之间无法共用，公有的 class，所以比较容易出现OOM异常。
+
+#### 为什么要移除持久代
+
+HotSpot团队选择移除持久代，有内因和外因两部分，从外因来说，我们看一下JEP 122的Motivation（动机）部分：
+>This is part of the JRockit and Hotspot convergence effort. JRockit customers do not need to configure the permanent generation (since JRockit does not have a permanent generation) and are accustomed to not configuring the permanent generation.
+>
+>大致就是说移除持久代也是为了和JRockit进行融合而做的努力，JRockit用户并不需要配置持久代（因为JRockit就没有持久代）。
+
+从内因来说，持久代大小受到-XX：PermSize和-XX：MaxPermSize两个参数的限制，而这两个参数又受到JVM设定的内存大小限制，这就导致**在使用中可能会出现持久代内存溢出的问题**，因此在Java 8及之后的版本中彻底移除了持久代而使用Metaspace来进行替代。
+
+#### 元空间（Metaspace）
 
 ![](https://cdn.jsdelivr.net/gh/LVicBlack/IMG/root/20211101175926.png)
 
+Metaspace是方法区在HotSpot中的实现，它**与持久代最大的区别**在于：Metaspace并不在虚拟机内存中而是使用本地内存，被存储在叫做Metaspace native memory。因此Metaspace具体大小理论上取决于32位/64位系统可用内存的大小
 
+其实，移除永久代的工作从JDK 1.7就开始了。JDK 1.7中，存储在永久代的部分数据就已经转移到Java Heap或者Native Heap。但永久代仍存在于JDK 1.7中，并没有完全移除，譬如符号引用(Symbols)转移到了native heap；字面量(interned strings)转移到了Java heap；类的静态变量(class statics)转移到了Java heap。
 
-#### 元空间查看
+Metaspace存放了以下信息：
+- 虚拟机加载的类信息
+- 常量池
+- 静态变量
+- 即时编译后的代码
+
+对于僵死的类及类加载器的垃圾回收将在元数据使用达到“MaxMetaspaceSize”参数的设定值时进行。
+适时地监控和调整元空间对于减小垃圾回收频率和减少延时是很有必要的。持续的元空间垃圾回收说明，可能存在类、类加载器导致的内存泄漏或是大小设置不合适
+
+#### 使用元空间的优点
+- 字符串常量池迁移到堆中，避免溢出
+- 永久代会为 GC 带来不必要的复杂度，并且回收效率偏低。
+- 通过类加载器来控制垃圾回收。
+
+#### Metaspace参数设置
+- -XX:MetaspaceSize	初始化的Metaspace大小，控制Metaspace发生GC的阈值。GC后，动态增加或者降低MetaspaceSize，默认情况下，这个值大小根据不同的平台在12M到20M之间浮动
+- -XX:MaxMetaspaceSize	限制Metaspace增长上限，防止因为某些情况导致Metaspace无限使用本地内存，影响到其他程序，默认为无上限
+- -XX:MinMetaspaceFreeRatio	当进行过Metaspace GC之后，会计算当前Metaspace的空闲空间比，如果空闲比小于这个参数，那么虚拟机增长Metaspace的大小，默认为40，即70%
+- -XX:MaxMetaspaceFreeRatio	当进行过Metaspace GC之后，会计算当前Metaspace的空闲空间比，如果空闲比大于这个参数，那么虚拟机会释放部分Metaspace空间，默认为70，即70%
+- -XX:MaxMetaspaceExpanison	Metaspace增长时的最大幅度，默认值为5M
+- -XX:MinMetaspaceExpanison	Metaspace增长时的最小幅度，默认为330KB
+
+#### 查看元空间
 - jps 查看pid
 - jinfo -flag MetaspaceSize pid 查看元空间大小，默认MetaspaceSize大小21807104（约20M）
 - jinfo -flag MaxMetaspaceSize pid 查看元空间最大大小
 
+#### 直接内存（DirectBuffer）
+
+直接内存位于本地内存，不属于JVM内存，但是也会在物理内存耗尽的时候报OOM。
+
+直接内存（Direct Memory）的容量大小可通过-XX：MaxDirectMemorySize参数来指定，如果不去指定，则默认与Java堆最大值（由-Xmx指定）一致。
+
+>一般直接内存溢出的原因：
+>
+>在jdk1.4中加入了NIO（New Input/Putput）类，引入了一种基于通道（channel）与缓冲区（buffer）的新IO方式，它可以使用native函数直接分配堆外内存，然后通过存储在java堆中的DirectByteBuffer对象作为这块内存的引用进行操作，这样可以在一些场景下大大提高IO性能，避免了在java堆和native堆来回复制数据。
+>
+>- ByteBuffer.allocate(capability) 第一种方式是分配VM堆内存，属于GC管辖范围，由于需要拷贝所以速度相对较慢。
+>- ByteBuffer.allocateDirect(capability) 第二种方式是分配OS本地内存，不属于GC管辖范围，由于不需要内存拷贝所以速度相对较快。
+>
+>如果不断分配本地内存，堆内存很少使用，那么JVM就不需要执行GC，DirectByteBuffer对象们就不会被回收，这时候堆内存充足，但本地内存可能已经使用光了，再次尝试分配本地内存就会出现OutOfMemoryError，那程序就直接崩溃了。
+
+### ex. 常量池
+// TODO 
+
+
+
+## 常见问题
+
+### 什么是Native方法？
+
+由于java是一门高级语言，离硬件底层比较远，有时候无法操作底层的资源，于是，java添加了native关键字，被native关键字修饰的方法可以用其他语言重写，这样，我们就可以写一个本地方法，然后用C语言重写，这样来操作底层资源。当然，使用了native方法会导致系统的可移植性不高，这是需要注意的。
+
+### 成员变量、局部变量、类变量分别存储在内存的什么地方？
+
+- 类变量
+	- 类变量是用static修饰符修饰，定义在方法外的变量，随着java进程产生和销毁
+	- 在java8之前把静态变量存放于方法区，在java8时存放在堆中
+
+- 成员变量
+	- 成员变量是定义在类中，但是没有static修饰符修饰的变量，随着类的实例产生和销毁，是类实例的一部分
+	- 由于是实例的一部分，在类初始化的时候，从运行时常量池取出直接引用或者值，与初始化的对象一起放入堆中
+
+- 局部变量
+	- 局部变量是定义在类的方法中的变量
+	- 在所在方法被调用时放入虚拟机栈的栈帧中，方法执行结束后从虚拟机栈中弹出，所以存放在虚拟机栈中
+
+### 类常量池、运行时常量池、字符串常量池有什么关系？有什么区别？
+
+- 类常量池与运行时常量池都存储在方法区，而字符串常量池在jdk7时就已经从方法区迁移到了java堆中。
+
+- 在类编译过程中，会把类元信息放到方法区，类元信息的其中一部分便是类常量池，主要存放字面量和符号引用，而字面量的一部分便是文本字符，在类加载时将字面量和符号引用解析为直接引用存储在运行时常量池；
+
+- 对于文本字符来说，它们会在解析时查找字符串常量池，查出这个文本字符对应的字符串对象的直接引用，将直接引用存储在运行时常量池；字符串常量池存储的是字符串对象的引用，而不是字符串本身。
+
+### 什么是字面量？什么是符号引用？
+
+- 字面量
+java代码在编译过程中是无法构建引用的，字面量就是在编译时对于数据的一种表示:
+```
+int a=1;//这个1便是字面量
+String b="i love u";//i love u便是字面量
+```
+
+- 符号引用
+由于在编译过程中并不知道每个类的地址，因为可能这个类还没有加载，所以如果你在一个类中引用了另一个类，那么你完全无法知道他的内存地址，那怎么办，我们只能用他的类名作为符号引用，在类加载完后用这个符号引用去获取他的内存地址。
+
+例子：我在com.demo.Solution类中引用了com.test.Quest，那么我会把com.test.Quest作为符号引用存到类常量池，等类加载完后，拿着这个引用去方法区找这个类的内存地址。
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-参考：
 
