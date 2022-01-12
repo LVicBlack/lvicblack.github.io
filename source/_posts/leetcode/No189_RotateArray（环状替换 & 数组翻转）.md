@@ -38,7 +38,7 @@ nums = [1, 2, 3, 4, 5, 6]
 k = 2
 ```
 
-![image.png](https://pic.leetcode-cn.com/f0493a97cdb7bc46b37306ca14e555451496f9f9c21effcad8517a81a26f30d6-image.png)
+![](https://cdn.jsdelivr.net/gh/LVicBlack/IMG/root/f0493a97cdb7bc46b37306ca14e555451496f9f9c21effcad8517a81a26f30d6-image.png)
 
 如果读者对上面的数学推导的理解有一定困难，也可以使用另外一种方式完成代码：使用单独的变量 $count $  跟踪当前已经访问的元素数量，当 $count=n $  时，结束遍历过程。
 
