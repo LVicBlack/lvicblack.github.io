@@ -105,3 +105,10 @@ deploy:
   type: git
   repository: git@github.com:LVicBlack/LVicBlack.github.io.git
   branch: master
+
+markdown:
+  plugins:
+    - plugin:
+      name: '@neilsustc/markdown-it-katex'
+      options:
+        strict: false
