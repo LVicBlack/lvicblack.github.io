@@ -35,6 +35,9 @@ tags:
 ```
 apt install ntpdate
 ntpdate ntp.aliyun.com
+
+crontab -e
+0 */1 * * * /usr/sbin/ntpdate ntp.aliyun.com
 ```
 
 #### 禁用  swapoff
@@ -71,7 +74,7 @@ sudo add-apt-repository "deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/li
 
 # 查看有哪些版本
 apt-cache madison docker-ce
-#安装最新版
+#安装最新版（需要安装20版本以下）
 sudo apt-get install -y docker-ce
 #安装5:19.03.15~3-0~ubuntu-focal版
 sudo apt-get install -y docker-ce=5:19.03.15~3-0~ubuntu-focal docker-ce-cli=5:19.03.15~3-0~ubuntu-focal
